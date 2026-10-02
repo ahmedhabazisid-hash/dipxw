@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIPX | Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dipx: { bg:'#05050A', card:'#0D0D1A', accent:'#00F0FF', purple:'#8A00FF', pink:'#FF007A', border:'#1F1F3A' }
+                    },
+                    fontFamily: { cairo:['Cairo','sans-serif'], orbitron:['Orbitron','sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body{font-family:'Cairo',sans-serif;background:#05050A;color:#fff;min-height:100vh}
+        .glass-card{background:rgba(13,13,26,.85);backdrop-filter:blur(12px);border:1px solid rgba(0,240,255,.2)}
+        .glass-modal{background:rgba(8,8,18,.95);backdrop-filter:blur(20px);border:1px solid rgba(138,0,255,.4)}
+        .btn-neon{background:linear-gradient(135deg,#00F0FF 0%,#8A00FF 50%,#FF007A 100%)}
+        .btn-orange{background:linear-gradient(135deg,#FF9900 0%,#FF007A 100%)}
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen">
+
+<div id="banned-screen" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 text-center">
+    <div class="p-8 glass-modal rounded-3xl max-w-md w-full border-red-500/50">
+        <i class="fa-solid fa-user-slash text-red-500 text-7xl mb-6"></i>
+        <h1 class="text-3xl font-black text-red-500 mb-3">حسابك مبند!</h1>
+        <p class="text-gray-400 text-sm mb-6">تم حظر حسابك من قبل مالك المنصة.</p>
+        <button onclick="logout()" class="w-full py-3 bg-red-600 border border-red-500 text-white font-bold rounded-xl hover:bg-red-700 transition">تسجيل الخروج</button>
+    </div>
+</div>
+
+<header class="sticky top-0 z-40 bg-dipx-bg/90 border-b border-dipx-border px-4 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-dipx-accent to-dipx-pink flex items-center justify-center text-black font-black text-xl">D</div>
+            <span class="text-3xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-dipx-accent via-dipx-purple to-dipx-pink font-orbitron">DIPX</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleLanguage()" class="px-3 py-2 text-xs font-bold bg-dipx-card border border-dipx-border rounded-xl text-dipx-accent">
+                <i class="fa-solid fa-globe"></i> <span id="lang-btn-text">English</span>
+            </button>
+            <div id="user-controls" class="flex items-center gap-2"></div>
+        </div>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-10 w-full flex-grow">
+    <section class="text-center mb-12">
+        <h1 class="text-6xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-dipx-accent via-white to-dipx-pink font-orbitron mb-4">DIPX</h1>
+        <p class="text-gray-400 text-sm sm:text-lg max-w-xl mx-auto font-semibold">منصة نشر المحتوى والمنشورات السريعة والمباشرة مع دعم رفع الصور</p>
+        <div class="relative max-w-2xl mx-auto mt-8">
+            <input type="text" id="search-input" oninput="filterPosts()" placeholder="ابحث مباشرة في العنوان أو محتوى المنشورات..."
+                class="w-full pr-6 pl-5 py-4 bg-dipx-card border border-dipx-border rounded-2xl focus:outline-none focus:border-dipx-accent text-white placeholder-gray-500 text-sm">
+        </div>
+    </section>
+
+    <div id="admin-create-post-container" class="hidden mb-12 max-w-3xl mx-auto p-6 glass-modal rounded-3xl">
+        <h3 class="text-xl font-bold mb-4 text-dipx-accent flex items-center gap-2"><i class="fa-solid fa-pen-nib text-dipx-pink"></i><span>إضافة منشور جديد</span></h3>
+        <input type="text" id="post-title" placeholder="عنوان المنشور..." class="w-full mb-3 p-3.5 bg-black/60 border border-dipx-border rounded-xl text-white text-sm">
+        <textarea id="post-content" rows="4" placeholder="اكتب محتوى النص أو الكود هنا..." class="w-full mb-4 p-3.5 bg-black/60 border border-dipx-border rounded-xl text-white text-sm"></textarea>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 bg-black/40 p-4 rounded-xl border border-dipx-border">
+            <div><label class="block text-xs text-gray-300 font-bold mb-1">رفع صورة من جهازك:</label><input type="file" id="post-image-file" accept="image/*" onchange="handleImageUpload(event)" class="w-full text-xs text-gray-400"></div>
+            <div><label class="block text-xs text-gray-300 font-bold mb-1">أو ضع رابط صورة مباشر:</label><input type="text" id="post-image-url" placeholder="https://example.com/image.jpg" class="p-2.5 bg-black/60 border border-dipx-border rounded-xl text-xs text-white w-full"></div>
+        </div>
+        <div id="image-preview-container" class="hidden mb-4 relative max-w-xs mx-auto">
+            <img id="image-preview" src="" class="w-full h-36 object-cover rounded-xl border border-dipx-accent">
+            <button onclick="removeSelectedImage()" class="absolute top-2 left-2 bg-red-600 text-white rounded-full p-1.5 text-xs"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <button onclick="createNewPost()" class="w-full btn-neon py-3.5 font-extrabold text-black rounded-xl text-sm">نشر لجميع الزوار فوراً</button>
+    </div>
+
+    <div class="flex items-center justify-between mb-8 border-b border-dipx-border pb-4">
+        <h2 class="text-2xl font-black text-white">المنشورات المعروضة للجميع</h2>
+        <span id="posts-count" class="text-xs font-bold text-dipx-accent bg-dipx-card px-4 py-2 rounded-full border border-dipx-border">0 منشور</span>
+    </div>
+    <div id="posts-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+</main>
+
+<div id="owner-drawer" class="fixed inset-y-0 right-0 z-50 w-80 glass-modal transform translate-x-full transition-transform duration-300 p-6 overflow-y-auto">
+    <div class="flex items-center justify-between border-b border-dipx-border pb-4 mb-6">
+        <h3 class="text-lg font-black text-yellow-400">لوحة المالك العليا</h3>
+        <button onclick="toggleOwnerDrawer(false)" class="text-gray-400 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="users-list" class="space-y-3"></div>
+</div>
+
+<div id="auth-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-modal w-full max-w-md rounded-3xl p-6 relative">
+        <button type="button" onclick="closeAuthModal()" class="absolute left-5 top-5 text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+        <div class="text-center mb-6"><h3 id="auth-title" class="text-2xl font-black text-white">تسجيل الدخول</h3></div>
+        <div>
+            <div class="mb-4"><label class="block text-xs font-bold text-gray-300 mb-2">البريد الإلكتروني</label><input type="email" id="auth-email" placeholder="example@gmail.com" class="w-full p-4 bg-black/60 border border-dipx-border rounded-xl text-white text-sm"></div>
+            <div class="mb-6"><label class="block text-xs font-bold text-gray-300 mb-2">كلمة المرور</label><input type="password" id="auth-password" placeholder="••••••••" class="w-full p-4 bg-black/60 border border-dipx-border rounded-xl text-white text-sm"></div>
+            <button type="button" id="auth-submit-btn" onclick="submitAuth()" class="w-full btn-neon py-3.5 font-black text-black rounded-xl text-sm mb-4">تسجيل الدخول</button>
+            <div class="text-center border-t border-dipx-border/50 pt-4"><p id="auth-toggle-text" class="text-xs text-gray-400">ليس لديك حساب؟ <button type="button" onclick="switchAuthMode('signup')" class="text-dipx-accent font-bold underline">إنشاء حساب جديد</button></p></div>
+        </div>
+    </div>
+</div>
+
+<div id="post-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-modal w-full max-w-2xl rounded-3xl p-6 relative">
+        <button onclick="closePostModal()" class="absolute left-5 top-5 text-gray-400 text-2xl"><i class="fa-solid fa-xmark"></i></button>
+        <div id="modal-post-content"></div>
+    </div>
+</div>
+
+<footer class="border-t border-dipx-border/40 py-8 text-center text-xs text-gray-500">DIPX Platform &copy; 2026 - جميع الحقوق محفوظة</footer>
+
+<script>
+const OWNER_EMAIL='ahmedhabazisid@gmail.com';
+const OWNER_PASS='22554773';
+let currentLang='ar',currentAuthMode='login',currentUser=null,uploadedBase64Image=null;
+let usersList=JSON.parse(localStorage.getItem('dipx_users'))||[];
+let ownerInList=usersList.find(u=>u.email.toLowerCase()===OWNER_EMAIL.toLowerCase());
+if(!ownerInList){usersList.push({id:'owner-1',email:OWNER_EMAIL,pass:OWNER_PASS,role:'owner',is_banned:false});localStorage.setItem('dipx_users',JSON.stringify(usersList))}
+else{ownerInList.pass=OWNER_PASS;ownerInList.role='owner';localStorage.setItem('dipx_users',JSON.stringify(usersList))}
+let allPosts=JSON.parse(localStorage.getItem('dipx_posts'))||[{id:'demo-1',title:'مرحباً بك في منصة DIPX الرسمية!',content:'هذا منشور تجريبي يوضح الواجهة. المنشورات المعروضة هنا تظهر لجميع الزوار فوراً!',image_url:'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop',created_at:new Date().toISOString()}];
+
+function checkSavedSession(){const e=localStorage.getItem('dipx_logged_in_user');if(e){const u=usersList.find(x=>x.email.toLowerCase()===e.toLowerCase());if(u&&!u.is_banned)currentUser=u;else if(u&&u.is_banned)document.getElementById('banned-screen').classList.remove('hidden')}}
+function openAuthModal(m){switchAuthMode(m||'login');document.getElementById('auth-modal').classList.remove('hidden')}
+function closeAuthModal(){document.getElementById('auth-modal').classList.add('hidden')}
+function switchAuthMode(m){currentAuthMode=m;document.getElementById('auth-title').innerText=m==='signup'?'إنشاء حساب جديد':'تسجيل الدخول';document.getElementById('auth-submit-btn').innerText=m==='signup'?'إنشاء حساب جديد':'تسجيل الدخول';document.getElementById('auth-toggle-text').innerHTML=m==='signup'?`لديك حساب بالفعل؟ <button type="button" onclick="switchAuthMode('login')" class="text-dipx-accent font-bold underline">تسجيل الدخول</button>`:`ليس لديك حساب؟ <button type="button" onclick="switchAuthMode('signup')" class="text-dipx-accent font-bold underline">إنشاء حساب جديد</button>`}
+function submitAuth(){const e=document.getElementById('auth-email').value.trim().toLowerCase(),p=document.getElementById('auth-password').value.trim();if(!e||!p)return alert('يرجى إدخال البريد الإلكتروني وكلمة المرور!');const old=usersList.find(u=>u.email.toLowerCase()===e);if(currentAuthMode==='login'){if(!old)return alert('⚠️ هذا الحساب غير موجود!');if(old.pass!==p)return alert('❌ كلمة المرور غير صحيحة!');if(old.is_banned){closeAuthModal();return document.getElementById('banned-screen').classList.remove('hidden')}currentUser=old;localStorage.setItem('dipx_logged_in_user',old.email);alert('✅ تم تسجيل الدخول بنجاح!')}else{if(old)return alert('هذا الإيميل مسجل مسبقاً!');const u={id:Date.now().toString(),email:e,pass:p,role:'user',is_banned:false};usersList.push(u);localStorage.setItem('dipx_users',JSON.stringify(usersList));currentUser=u;localStorage.setItem('dipx_logged_in_user',u.email);alert('🎉 تم إنشاء الحساب بنجاح!')}document.getElementById('auth-email').value='';document.getElementById('auth-password').value='';closeAuthModal();updateUI()}
+function updateUI(){const c=document.getElementById('user-controls'),a=document.getElementById('admin-create-post-container');if(currentUser){const owner=currentUser.email.toLowerCase()===OWNER_EMAIL.toLowerCase(),admin=currentUser.role==='admin'||owner;if(admin)a.classList.remove('hidden');else a.classList.add('hidden');c.innerHTML=`<div class="flex items-center gap-2">${owner?`<button onclick="toggleOwnerDrawer(true)" class="px-3 py-2 text-xs font-black bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 rounded-xl">لوحة المالك</button>`:''}<span class="text-xs font-bold text-gray-300 bg-dipx-card px-3 py-2 rounded-xl border border-dipx-border">${currentUser.email}</span><button onclick="logout()" class="px-3 py-2 text-xs font-bold bg-red-500/20 border border-red-500/40 text-red-400 rounded-xl">تسجيل الخروج</button></div>`}else{a.classList.add('hidden');c.innerHTML=`<button onclick="openAuthModal('login')" class="btn-neon px-4 py-2 rounded-xl font-bold text-black text-xs">تسجيل الدخول</button><button onclick="openAuthModal('signup')" class="btn-orange px-4 py-2 rounded-xl font-bold text-white text-xs">إنشاء حساب</button>`}renderPosts(allPosts)}
+function logout(){currentUser=null;localStorage.removeItem('dipx_logged_in_user');document.getElementById('banned-screen').classList.add('hidden');updateUI()}
+function handleImageUpload(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=x=>{uploadedBase64Image=x.target.result;document.getElementById('image-preview').src=uploadedBase64Image;document.getElementById('image-preview-container').classList.remove('hidden')};r.readAsDataURL(f)}}
+function removeSelectedImage(){uploadedBase64Image=null;document.getElementById('post-image-file').value='';document.getElementById('post-image-url').value='';document.getElementById('image-preview-container').classList.add('hidden')}
+function renderPosts(posts){const g=document.getElementById('posts-grid');document.getElementById('posts-count').innerText=`${posts.length} منشور`;if(!posts.length)return g.innerHTML='<div class="col-span-full text-center py-16 text-gray-500 font-bold">لا توجد منشورات حتى الآن</div>';g.innerHTML=posts.map(p=>{const admin=currentUser?.role==='admin'||currentUser?.email.toLowerCase()===OWNER_EMAIL.toLowerCase();return `<div onclick="openPostModal('${p.id}')" class="group relative aspect-square bg-dipx-card rounded-3xl p-5 flex flex-col justify-between cursor-pointer glass-card overflow-hidden">${p.image_url?`<img src="${p.image_url}" class="absolute inset-0 w-full h-full object-cover opacity-40">`:''}<div class="relative z-10 flex justify-between items-start"><span class="text-[11px] font-bold bg-black/70 px-3 py-1 rounded-full text-dipx-accent">${new Date(p.created_at).toLocaleDateString('ar-EG')}</span>${admin?`<button onclick="event.stopPropagation();deletePost('${p.id}')" class="text-red-400 bg-black/80 p-2 rounded-xl"><i class="fa-solid fa-trash-can"></i></button>`:''}</div><div class="relative z-10"><h3 class="font-black text-xl text-white mb-1">${p.title}</h3><p class="text-xs text-gray-300">${p.content}</p></div></div>`}).join('')}
+function filterPosts(){const q=document.getElementById('search-input').value.toLowerCase();renderPosts(allPosts.filter(p=>p.title.toLowerCase().includes(q)||p.content.toLowerCase().includes(q)))}
+function createNewPost(){const t=document.getElementById('post-title').value.trim(),c=document.getElementById('post-content').value.trim(),url=document.getElementById('post-image-url').value.trim();if(!t||!c)return alert('يرجى ملء جميع الحقول');allPosts.unshift({id:Date.now().toString(),title:t,content:c,image_url:uploadedBase64Image||url||null,created_at:new Date().toISOString()});localStorage.setItem('dipx_posts',JSON.stringify(allPosts));document.getElementById('post-title').value='';document.getElementById('post-content').value='';removeSelectedImage();renderPosts(allPosts);alert('تم نشر المنشور بنجاح!')}
+function deletePost(id){if(!confirm('هل أنت متأكد من الحذف؟'))return;allPosts=allPosts.filter(p=>p.id!==id);localStorage.setItem('dipx_posts',JSON.stringify(allPosts));renderPosts(allPosts)}
+function openPostModal(id){const p=allPosts.find(x=>x.id===id);if(!p)return;document.getElementById('modal-post-content').innerHTML=`${p.image_url?`<img src="${p.image_url}" class="w-full max-h-96 object-cover rounded-2xl mb-4">`:''}<h2 class="text-2xl font-black text-dipx-accent mb-4">${p.title}</h2><div class="bg-black/50 p-4 rounded-2xl text-gray-200 text-sm mb-4" id="post-text-body">${p.content}</div><button onclick="copyPostText()" class="btn-neon px-6 py-2 text-black text-sm font-black rounded-xl">نسخ النص</button>`;document.getElementById('post-modal').classList.remove('hidden')}
+function closePostModal(){document.getElementById('post-modal').classList.add('hidden')}
+function copyPostText(){navigator.clipboard.writeText(document.getElementById('post-text-body').innerText);alert('تم النسخ!')}
+function toggleOwnerDrawer(show){const d=document.getElementById('owner-drawer');if(show){d.classList.remove('translate-x-full');renderUsersList()}else d.classList.add('translate-x-full')}
+function renderUsersList(){document.getElementById('users-list').innerHTML=usersList.map(u=>`<div class="p-3 bg-black/60 border border-dipx-border rounded-xl flex items-center justify-between"><div><p class="text-xs font-bold text-white">${u.email}</p><span class="text-[10px] text-gray-400">${u.role}</span></div></div>`).join('')}
+function toggleLanguage(){currentLang=currentLang==='ar'?'en':'ar';document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';document.documentElement.lang=currentLang;document.getElementById('lang-btn-text').innerText=currentLang==='ar'?'English':'العربية'}
+window.onload=()=>{checkSavedSession();updateUI()}
+</script>
+</body>
+</html>
